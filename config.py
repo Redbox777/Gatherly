@@ -1,6 +1,6 @@
 import os
 
-TOKEN      = ("8707826926:AAFP1ZEJIPRW-HGgpEQ7HMgIRLRv20c9X_4")
-DB_FILE    = ("DB_FILE", "gatherly.db")
-GROQ_KEY   = ("GROQ_KEY", "")
-YANDEX_KEY = ("YANDEX_KEY", "")
+TOKEN      = os.environ.get("TOKEN", "8707826926:AAFIkE7qyK-2uehbd1FDVvIAi_9bH_TcAnw")
+DB_FILE    = os.environ.get("DB_FILE", "gatherly.db")
+GROQ_KEY   = os.environ.get("GROQ_KEY", "")
+YANDEX_KEY = os.environ.get("YANDEX_KEY", "")
