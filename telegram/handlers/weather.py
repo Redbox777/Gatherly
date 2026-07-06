@@ -1,4 +1,4 @@
-	from aiogram import Dispatcher, F
+from aiogram import Dispatcher, F
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from telegram.keyboards import main_kb, cancel_kb
@@ -18,11 +18,12 @@ def register(dp: Dispatcher):
         await m.answer("⏳ Получаю погоду...", reply_markup=main_kb())
         w = await get_weather(m.text.strip())
         if not w:
-            await m.answer("❌ Город не найден. Попробуй по-английски: Moscow"); return
+            await m.answer("❌ Город не найден. Попробуй по-английски: Moscow")
+            return
         await m.answer(
             f"🌤 <b>{w['name']}</b>, {w['country']}\n\n"
             f"{w['desc']}\n"
             f"🌡 {w['temp']}°C, ощущается {w['feels']}°C\n"
             f"💨 Ветер {w['wind']} км/ч · 💧 {w['humidity']}%",
             parse_mode="HTML"
-        )
+		)
