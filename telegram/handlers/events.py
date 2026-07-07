@@ -1,7 +1,3 @@
-"""
-Telegram-интерфейс для встреч. Вся бизнес-логика — в core.events_service.
-Этот файл только: принимает сообщение → вызывает core → рисует ответ.
-"""
 from aiogram import Dispatcher, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command
@@ -11,6 +7,12 @@ from core import events_service
 from telegram.keyboards import main_kb, skip_kb, cancel_kb, inline, inline_grid
 from telegram.states import EventForm
 from telegram.utils import safe_edit, cb_answer, fmt_event
+
+async def _notify(bot, user_id: int, text: str):
+    try:
+        await bot.send_message(user_id, text)
+    except Exception:
+        pass
 
 def register(dp: Dispatcher):
 
@@ -32,6 +34,13 @@ def register(dp: Dispatcher):
         if not ok:
             await m.answer("❌ Встреча не найдена"); return
         ev = events_service.get_event(eid)
+
+        notif = events_service.get_new_participant_notification(
+            eid, m.from_user.id, m.from_user.username
+        )
+        if notif:
+            await _notify(m.bot, notif['creator_id'], notif['text'])
+
         await m.answer(f"✅ Ты в встрече!\n\n" + fmt_event(ev),
             reply_markup=inline(
                 ("✅ Иду", f"rsvp:{eid}:going"),
@@ -39,7 +48,6 @@ def register(dp: Dispatcher):
                 ("❌ Не иду", f"rsvp:{eid}:no"),
             ), parse_mode="HTML")
 
-    # ── FSM создания встречи ──────────────────────────
     @dp.message(EventForm.title)
     async def fsm_title(m: Message, state: FSMContext):
         await state.update_data(title=m.text)
@@ -92,7 +100,6 @@ def register(dp: Dispatcher):
             reply_markup=main_kb(), parse_mode="HTML"
         )
 
-    # ── Callbacks ─────────────────────────────────────
     @dp.callback_query(F.data == "events:new")
     async def cb_new(cb: CallbackQuery, state: FSMContext):
         await cb_answer(cb)
@@ -133,7 +140,15 @@ def register(dp: Dispatcher):
     @dp.callback_query(F.data.startswith("rsvp:"))
     async def cb_rsvp(cb: CallbackQuery):
         _, eid, status = cb.data.split(":")
-        events_service.set_rsvp(int(eid), cb.from_user.id, cb.from_user.username, status)
+        eid = int(eid)
+        events_service.set_rsvp(eid, cb.from_user.id, cb.from_user.username, status)
+
+        notif = events_service.get_rsvp_change_notification(
+            eid, cb.from_user.id, cb.from_user.username, status
+        )
+        if notif:
+            await _notify(cb.bot, notif['creator_id'], notif['text'])
+
         labels = {"going":"✅ Иду!", "maybe":"🤔 Может быть", "no":"❌ Не иду"}
         await cb_answer(cb, labels.get(status, "Сохранено"))
 

@@ -8,7 +8,8 @@ def main_kb():
             [KeyboardButton(text="✅ Чек-листы"),  KeyboardButton(text="🌤 Погода")],
             [KeyboardButton(text="🗳 Голосования"), KeyboardButton(text="💰 Расходы")],
             [KeyboardButton(text="🗺 Маршруты"),   KeyboardButton(text="🌅 Восход/закат")],
-            [KeyboardButton(text="📊 Статистика"), KeyboardButton(text="❓ Помощь")],
+            [KeyboardButton(text="📊 Статистика"), KeyboardButton(text="👤 Профиль")],
+            [KeyboardButton(text="❓ Помощь")],
         ],
         resize_keyboard=True, persistent=True
     )
@@ -36,5 +37,6 @@ def inline_grid(buttons, cols=2):
         row.append(InlineKeyboardButton(text=t, callback_data=d))
         if len(row) == cols:
             rows.append(row); row = []
-    if row: rows.append(row)
+    if row:
+        rows.append(row)
     return InlineKeyboardMarkup(inline_keyboard=rows)

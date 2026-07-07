@@ -14,6 +14,7 @@ HANDLERS = [
     "telegram.handlers.weather",
     "telegram.handlers.sun",
     "telegram.handlers.statistics",
+    "telegram.handlers.profile",
     "telegram.handlers.help",
 ]
 

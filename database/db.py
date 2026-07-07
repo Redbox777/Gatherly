@@ -88,4 +88,9 @@ def init_db():
                 url TEXT NOT NULL, title TEXT,
                 created TEXT DEFAULT (datetime('now'))
             );
+            CREATE TABLE IF NOT EXISTS user_profiles (
+                user_id INTEGER PRIMARY KEY,
+                name TEXT, city TEXT, timezone TEXT, interests TEXT,
+                updated TEXT DEFAULT (datetime('now'))
+            );
         """)
