@@ -4,15 +4,12 @@ from aiogram import Dispatcher
 log = logging.getLogger(__name__)
 
 HANDLERS = [
-    "telegram.handlers.events",
+    "telegram.handlers.meet",
     "telegram.handlers.places",
-    "telegram.handlers.checklists",
-    "telegram.handlers.polls",
     "telegram.handlers.expenses",
-    "telegram.handlers.routes",
-    "telegram.handlers.links",
     "telegram.handlers.weather",
     "telegram.handlers.sun",
+    "telegram.handlers.links",
     "telegram.handlers.statistics",
     "telegram.handlers.people",
     "telegram.handlers.help",

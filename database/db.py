@@ -101,4 +101,11 @@ def init_db():
                 created TEXT DEFAULT (datetime('now')),
                 PRIMARY KEY (user_a, user_b)
             );
+            CREATE TABLE IF NOT EXISTS event_discussion (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
+                user_id INTEGER NOT NULL, username TEXT,
+                text TEXT NOT NULL,
+                created TEXT DEFAULT (datetime('now'))
+            );
         """)

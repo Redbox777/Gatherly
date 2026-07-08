@@ -4,11 +4,9 @@ from aiogram.types import (ReplyKeyboardMarkup, KeyboardButton,
 def main_kb():
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="📅 Встречи"),    KeyboardButton(text="📍 Места")],
-            [KeyboardButton(text="✅ Чек-листы"),  KeyboardButton(text="🌤 Погода")],
-            [KeyboardButton(text="🗳 Голосования"), KeyboardButton(text="💰 Расходы")],
-            [KeyboardButton(text="🗺 Маршруты"),   KeyboardButton(text="🌅 Восход/закат")],
-            [KeyboardButton(text="📊 Статистика"), KeyboardButton(text="👥 People")],
+            [KeyboardButton(text="📅 Meet"),        KeyboardButton(text="📍 Places")],
+            [KeyboardButton(text="💰 Expenses"),    KeyboardButton(text="🌤 Environment")],
+            [KeyboardButton(text="📊 Статистика"),  KeyboardButton(text="👥 People")],
             [KeyboardButton(text="❓ Помощь")],
         ],
         resize_keyboard=True, persistent=True

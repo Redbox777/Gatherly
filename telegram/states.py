@@ -36,3 +36,7 @@ class LinkForm(StatesGroup):
     event_id = State()
     url = State()
     title = State()
+
+class DiscussionForm(StatesGroup):
+    event_id = State()
+    message = State()
