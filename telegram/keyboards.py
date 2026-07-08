@@ -8,7 +8,7 @@ def main_kb():
             [KeyboardButton(text="✅ Чек-листы"),  KeyboardButton(text="🌤 Погода")],
             [KeyboardButton(text="🗳 Голосования"), KeyboardButton(text="💰 Расходы")],
             [KeyboardButton(text="🗺 Маршруты"),   KeyboardButton(text="🌅 Восход/закат")],
-            [KeyboardButton(text="📊 Статистика"), KeyboardButton(text="👤 Профиль")],
+            [KeyboardButton(text="📊 Статистика"), KeyboardButton(text="👥 People")],
             [KeyboardButton(text="❓ Помощь")],
         ],
         resize_keyboard=True, persistent=True

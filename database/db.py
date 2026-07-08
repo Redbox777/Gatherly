@@ -93,4 +93,12 @@ def init_db():
                 name TEXT, city TEXT, timezone TEXT, interests TEXT,
                 updated TEXT DEFAULT (datetime('now'))
             );
+            CREATE TABLE IF NOT EXISTS friendships (
+                user_a INTEGER NOT NULL,
+                user_b INTEGER NOT NULL,
+                requested_by INTEGER NOT NULL,
+                status TEXT DEFAULT 'pending',
+                created TEXT DEFAULT (datetime('now')),
+                PRIMARY KEY (user_a, user_b)
+            );
         """)
