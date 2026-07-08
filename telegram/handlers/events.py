@@ -4,7 +4,8 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
 from core import events_service
-from telegram.keyboards import main_kb, skip_kb, cancel_kb, inline, inline_grid
+from core.event_parser import parse_event_message, format_example
+from telegram.keyboards import main_kb, cancel_kb, inline, inline_grid
 from telegram.states import EventForm
 from telegram.utils import safe_edit, cb_answer, fmt_event
 
@@ -48,53 +49,33 @@ def register(dp: Dispatcher):
                 ("❌ Не иду", f"rsvp:{eid}:no"),
             ), parse_mode="HTML")
 
-    @dp.message(EventForm.title)
-    async def fsm_title(m: Message, state: FSMContext):
-        await state.update_data(title=m.text)
-        await state.set_state(EventForm.date)
-        await m.answer("🗓 Дата и время? (или /skip)", reply_markup=skip_kb())
-
-    @dp.message(EventForm.date)
-    async def fsm_date(m: Message, state: FSMContext):
-        await state.update_data(date_str=None if m.text=="/skip" else m.text)
-        await state.set_state(EventForm.place)
-        await m.answer("📍 Место? (или /skip)", reply_markup=skip_kb())
-
-    @dp.message(EventForm.place)
-    async def fsm_place(m: Message, state: FSMContext):
-        await state.update_data(place=None if m.text=="/skip" else m.text)
-        await state.set_state(EventForm.note)
-        await m.answer("📝 Заметка? (или /skip)", reply_markup=skip_kb())
-
-    @dp.message(EventForm.note)
-    async def fsm_note(m: Message, state: FSMContext):
-        await state.update_data(note=None if m.text=="/skip" else m.text)
-        await state.set_state(EventForm.remind)
-        await m.answer(
-            "⏰ Напомнить?\nФормат: <code>2026-07-15 17:00</code>\nИли /skip",
-            reply_markup=skip_kb(), parse_mode="HTML"
-        )
-
-    @dp.message(EventForm.remind)
-    async def fsm_remind(m: Message, state: FSMContext):
-        remind_at = None if m.text=="/skip" else m.text.strip()
-        data = await state.get_data()
+    @dp.message(EventForm.all_in_one)
+    async def fsm_all_in_one(m: Message, state: FSMContext):
         await state.clear()
+        parsed = parse_event_message(m.text)
+
+        if not parsed['title']:
+            await m.answer(
+                "❌ Не понял название встречи.\n\n" + format_example(),
+                reply_markup=cancel_kb(), parse_mode="HTML"
+            )
+            await state.set_state(EventForm.all_in_one)
+            return
 
         event_id = events_service.create_event(
             chat_id=m.chat.id,
             creator_id=m.from_user.id,
             creator_username=m.from_user.username,
-            title=data['title'],
-            date_str=data.get('date_str'),
-            place=data.get('place'),
-            note=data.get('note'),
-            remind_at=remind_at,
+            title=parsed['title'],
+            date_str=parsed['date_str'],
+            place=parsed['place'],
+            note=parsed['note'],
+            remind_at=parsed['remind_at'],
         )
 
-        remind_txt = f"\n⏰ Напомню: {remind_at}" if remind_at else ""
+        remind_txt = f"\n⏰ Напомню: {parsed['remind_at']}" if parsed['remind_at'] else ""
         await m.answer(
-            f"✅ Встреча создана!\n\n📅 <b>{data['title']}</b>\n"
+            f"✅ Встреча создана!\n\n📅 <b>{parsed['title']}</b>\n"
             f"ID: <code>{event_id}</code>{remind_txt}\n\n"
             f"Друзья: <code>/join {event_id}</code>",
             reply_markup=main_kb(), parse_mode="HTML"
@@ -103,8 +84,8 @@ def register(dp: Dispatcher):
     @dp.callback_query(F.data == "events:new")
     async def cb_new(cb: CallbackQuery, state: FSMContext):
         await cb_answer(cb)
-        await state.set_state(EventForm.title)
-        await cb.message.answer("📅 <b>Новая встреча</b>\n\nНазвание:",
+        await state.set_state(EventForm.all_in_one)
+        await cb.message.answer(format_example(),
             reply_markup=cancel_kb(), parse_mode="HTML")
 
     @dp.callback_query(F.data == "events:list")
