@@ -1,5 +1,6 @@
 from aiogram import Dispatcher, F
 from aiogram.types import Message, CallbackQuery
+from aiogram.filters import Command, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from core import profiles_service, friends_service
@@ -30,7 +31,47 @@ def _friend_display_name(user_id):
         return p['name']
     return f"user{user_id}"
 
+async def _send_friend_request_flow(bot, from_id, from_username, to_id, message_target):
+    result = friends_service.send_friend_request(from_id, from_username, to_id)
+    messages = {
+        "sent": "✅ Заявка отправлена!",
+        "already_friends": "Вы уже друзья.",
+        "already_pending": "Заявка уже отправлена ранее.",
+        "self": "Нельзя добавить самого себя.",
+    }
+    await message_target.answer(messages.get(result, "Готово"), reply_markup=main_kb())
+
+    if result == "sent":
+        try:
+            await bot.send_message(
+                to_id,
+                f"📨 {_friend_display_name(from_id)} хочет добавить тебя в друзья!\n"
+                f"Загляни в 👥 People → 📨 Заявки"
+            )
+        except Exception:
+            pass
+
 def register(dp: Dispatcher):
+
+    @dp.message(Command("start"), F.text.regexp(r"^/start friend_(\d+)$"))
+    async def cmd_start_friend_link(m: Message, command: CommandObject):
+        payload = command.args or ""
+        if not payload.startswith("friend_"):
+            return
+        try:
+            target_id = int(payload.split("_")[1])
+        except (IndexError, ValueError):
+            return
+        await _send_friend_request_flow(m.bot, m.from_user.id, m.from_user.username, target_id, m)
+
+    @dp.message(Command("addme"))
+    async def cmd_addme(m: Message):
+        parts = (m.text or "").split()
+        if len(parts) < 2 or not parts[1].isdigit():
+            await m.answer("Использование: /addme <ID друга>\n\nID можно найти в 👥 People → 👤 Мой профиль")
+            return
+        target_id = int(parts[1])
+        await _send_friend_request_flow(m.bot, m.from_user.id, m.from_user.username, target_id, m)
 
     @dp.message(F.text == "👥 People")
     async def btn_people(m: Message):
@@ -48,7 +89,16 @@ def register(dp: Dispatcher):
     async def cb_profile(cb: CallbackQuery):
         await cb.answer()
         p = profiles_service.get_profile(cb.from_user.id)
-        await cb.message.answer(_fmt_profile(p), parse_mode="HTML",
+        bot_info = await cb.bot.get_me()
+        invite_link = f"https://t.me/{bot_info.username}?start=friend_{cb.from_user.id}"
+        text = (
+            _fmt_profile(p) +
+            f"\n\n🆔 Твой ID: <code>{cb.from_user.id}</code>\n"
+            f"Друг может добавить тебя командой:\n"
+            f"<code>/addme {cb.from_user.id}</code>\n\n"
+            f"Или по ссылке:\n{invite_link}"
+        )
+        await cb.message.answer(text, parse_mode="HTML",
             reply_markup=inline(
                 ("✏️ Имя", "profile:edit:name"),
                 ("🏙 Город", "profile:edit:city"),
@@ -103,7 +153,9 @@ def register(dp: Dispatcher):
         friend_ids = friends_service.get_friends_list(cb.from_user.id)
         if not friend_ids:
             await cb.message.answer(
-                "👫 У тебя пока нет друзей.\n\nНайди кого-нибудь через «🔍 Найти человека»!"
+                "👫 У тебя пока нет друзей.\n\n"
+                "Найди кого-нибудь через «🔍 Найти человека» или попроси друга "
+                "написать твою команду добавления (смотри в 👤 Мой профиль)."
             )
             return
         lines = ["👫 <b>Твои друзья:</b>\n"]
@@ -171,7 +223,9 @@ def register(dp: Dispatcher):
         await cb.answer()
         await state.set_state(FriendForm.search)
         await cb.message.answer(
-            "🔍 Напиши username (@ivan123) или ID пользователя:",
+            "🔍 Напиши username (@ivan123) или ID пользователя:\n\n"
+            "💡 Совет: проще попросить друга отправить тебе его команду "
+            "добавления из раздела 👤 Мой профиль.",
             reply_markup=cancel_kb()
         )
 
@@ -189,7 +243,8 @@ def register(dp: Dispatcher):
         if not target_id:
             await m.answer(
                 "❌ Не нашёл такого человека.\n\n"
-                "Поиск по username работает только для тех, кто уже писал этому боту.",
+                "Поиск по username работает только для тех, кто уже писал этому боту.\n"
+                "Понадёжнее — попроси у друга его команду добавления (👤 Мой профиль → /addme).",
                 reply_markup=main_kb()
             )
             return
@@ -205,23 +260,6 @@ def register(dp: Dispatcher):
     async def cb_send_request(cb: CallbackQuery):
         await cb.answer()
         target_id = int(cb.data.split(":")[2])
-        result = friends_service.send_friend_request(
-            cb.from_user.id, cb.from_user.username, target_id
+        await _send_friend_request_flow(
+            cb.bot, cb.from_user.id, cb.from_user.username, target_id, cb.message
         )
-        messages = {
-            "sent": "✅ Заявка отправлена!",
-            "already_friends": "Вы уже друзья.",
-            "already_pending": "Заявка уже отправлена ранее.",
-            "self": "Нельзя добавить самого себя.",
-        }
-        await cb.message.answer(messages.get(result, "Готово"))
-
-        if result == "sent":
-            try:
-                await cb.bot.send_message(
-                    target_id,
-                    f"📨 {_friend_display_name(cb.from_user.id)} хочет добавить тебя в друзья!\n"
-                    f"Загляни в 👥 People → 📨 Заявки"
-                )
-            except Exception:
-                pass
