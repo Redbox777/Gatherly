@@ -6,6 +6,7 @@ log = logging.getLogger(__name__)
 HANDLERS = [
     "telegram.handlers.meet",
     "telegram.handlers.places",
+    "telegram.handlers.notes",
     "telegram.handlers.expenses",
     "telegram.handlers.environment",
     "telegram.handlers.links",

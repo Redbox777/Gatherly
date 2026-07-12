@@ -5,9 +5,9 @@ def main_kb():
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="📅 Meet"),        KeyboardButton(text="📍 Places")],
-            [KeyboardButton(text="💰 Expenses"),    KeyboardButton(text="🌤 Environment")],
-            [KeyboardButton(text="📊 Статистика"),  KeyboardButton(text="👥 People")],
-            [KeyboardButton(text="❓ Помощь")],
+            [KeyboardButton(text="📝 Notes"),       KeyboardButton(text="💰 Expenses")],
+            [KeyboardButton(text="🌤 Environment"), KeyboardButton(text="👥 People")],
+            [KeyboardButton(text="📊 Статистика"),  KeyboardButton(text="❓ Помощь")],
         ],
         resize_keyboard=True, persistent=True
     )

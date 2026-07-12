@@ -126,6 +126,7 @@ def register(dp: Dispatcher):
                 ("🗳 Голосование",   f"poll:list:{eid}"),
                 ("🗺 Маршрут",      f"route:list:{eid}"),
                 (discuss_label,     f"discuss:view:{eid}"),
+                ("📝 Заметки",       f"notes:event:{eid}"),
                 ("🔔 Уведомить всех", f"event:notify:{eid}"),
                 ("🗑 Удалить",      f"event:del:{eid}"),
             ))

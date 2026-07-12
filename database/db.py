@@ -108,4 +108,13 @@ def init_db():
                 text TEXT NOT NULL,
                 created TEXT DEFAULT (datetime('now'))
             );
+            CREATE TABLE IF NOT EXISTS notes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
+                text TEXT NOT NULL,
+                is_shared INTEGER DEFAULT 0,
+                attachment_url TEXT,
+                created TEXT DEFAULT (datetime('now'))
+            );
         """)
