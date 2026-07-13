@@ -1,7 +1,3 @@
-"""
-Точка входа. Только: запуск бота, инициализация БД, загрузка handlers, фоновые задачи.
-Вся бизнес-логика — в core/. Весь Telegram-интерфейс — в telegram/.
-"""
 import asyncio, logging, sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -42,7 +38,12 @@ async def main():
     load_handlers(dp)
 
     await bot.delete_webhook(drop_pending_updates=True)
-    asyncio.create_task(reminder_loop(bot))
+
+    reminder_task = asyncio.create_task(reminder_loop(bot))
+    reminder_task.add_done_callback(
+        lambda t: log.exception("reminder_loop завершилась неожиданно", exc_info=t.exception())
+        if t.exception() else None
+    )
 
     log.info("🚀 Gatherly Core v1 запущен")
     await dp.start_polling(bot, allowed_updates=["message", "callback_query"])

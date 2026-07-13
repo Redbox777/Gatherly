@@ -5,7 +5,6 @@ from core.reminders_service import get_due_reminders, mark_sent
 log = logging.getLogger(__name__)
 
 async def reminder_loop(bot: Bot):
-    """Фоновая задача — каждую минуту проверяет напоминания через core-сервис."""
     while True:
         try:
             for r in get_due_reminders():
@@ -17,8 +16,8 @@ async def reminder_loop(bot: Bot):
                         parse_mode="HTML"
                     )
                     mark_sent(r['id'])
-                except Exception as e:
-                    log.error(f"Reminder send error: {e}")
-        except Exception as e:
-            log.error(f"Reminder loop error: {e}")
+                except Exception:
+                    log.exception(f"Ошибка отправки напоминания user_id={r['user_id']}")
+        except Exception:
+            log.exception("Ошибка в цикле напоминаний")
         await asyncio.sleep(60)

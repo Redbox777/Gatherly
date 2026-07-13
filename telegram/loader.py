@@ -24,5 +24,5 @@ def load_handlers(dp: Dispatcher):
                 log.info(f"✅ Загружен: {path}")
             else:
                 log.warning(f"⚠️ Нет register() в {path}")
-        except Exception as e:
-            log.error(f"❌ Ошибка загрузки {path}: {e}")
+        except Exception:
+            log.exception(f"❌ Ошибка загрузки {path}")
